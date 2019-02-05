@@ -21,10 +21,11 @@ import org.apache.poi.ss.usermodel.Workbook;
 public class UpdateDB {
     public static void main(String[] args) throws IOException, SQLException{
         UpdateDB test = new UpdateDB();
-        test.run("MNWW201901291_WBCWSV3_pillar_20190201201654");
+        //                  modify pillar_id ,                modify fileName
+        test.run("MNWW201901291_WBCWSV3_pillar_20190201201654" , "");
     }
-    private void run(String pillarId) throws IOException, SQLException{
-        Workbook wb = ExcelOperation.getReadConnection("C:\\Users\\Wei Wang\\Desktop\\TestTread\\test.xlsx", ExcelOperation.ExcelType.XLSX);
+    private void run(String pillarId , String fileName) throws IOException, SQLException{
+        Workbook wb = ExcelOperation.getReadConnection("C:\\Users\\Wei Wang\\Desktop\\TestTread\\"+ fileName +".xlsx", ExcelOperation.ExcelType.XLSX);
         Sheet sheet = wb.getSheetAt(0);
         Row rowTitle = sheet.getRow(0);
         DataBaseCon db = new V7DataBaseCon();

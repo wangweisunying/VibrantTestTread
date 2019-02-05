@@ -19,11 +19,12 @@ public class test {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        DateFormat dateFormat = new SimpleDateFormat("yyMMdd0000");
-        
-        String cur =  dateFormat.format(new Date());
-        System.out.println(cur);
-        System.out.println(dateDif(cur , "1811010000"));
+//        DateFormat dateFormat = new SimpleDateFormat("yyMMdd0000");
+//        
+//        String cur =  dateFormat.format(new Date());
+//        System.out.println(cur);
+//        System.out.println(dateDif(cur , "1811010000"));
+System.out.println( System.currentTimeMillis());
     }
     
     

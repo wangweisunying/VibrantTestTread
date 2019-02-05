@@ -203,8 +203,7 @@ public class VibrantTestTread {
         
         
         
-        ExcelOperation.writeExcel(path + "test.xlsx", wb);
-
+        ExcelOperation.writeExcel(path + pillarId + "_" + System.currentTimeMillis() +".xlsx", wb);
     }
 
     private int dateDif(String newJun, String oldJun) {
