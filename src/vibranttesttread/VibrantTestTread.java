@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.DateFormat;
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -39,7 +40,7 @@ public class VibrantTestTread {
     /**
      * @param args the command line arguments
      */
-    private final String pillarId = "MNWW201901291_WBCWSV3_pillar_20190201201654";
+    private final String pillarId = "MNWM201901291_WBCMETALV3_pillar_20190202160423";
     private final String path = "C:\\Users\\Wei Wang\\Desktop\\TestTread\\";
 
     // //Map<testcode ,Map< julienBarcode , unit>>
@@ -124,16 +125,26 @@ public class VibrantTestTread {
         CellStyle cs = wb.createCellStyle();
         cs.setFillPattern(FillPatternType.SOLID_FOREGROUND);
         cs.setFillForegroundColor(IndexedColors.RED.getIndex());
-
+        
+        CellStyle csBlue = wb.createCellStyle();
+        csBlue.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        csBlue.setFillForegroundColor(IndexedColors.BLUE.getIndex());
+        
+        DecimalFormat df = new DecimalFormat("#.00");
         int rowCt = 0, colCt = 0;
         Row rowTitle = sheet.createRow(rowCt++);
         rowTitle.createCell(0).setCellValue("TestCode");
         rowTitle.createCell(1).setCellValue("low");
         rowTitle.createCell(2).setCellValue("high");
+        rowTitle.createCell(3).setCellValue("lowPercentage");
+        rowTitle.createCell(4).setCellValue("highPercentage");
         for (String testCode : pillarUnitMap.keySet()) {
             colCt = 0;
-
+            
             double[] arr = refMap.get(testCode);
+            if(arr == null){
+                continue;
+            }
 //            if(arr[0] == 0 && arr[1] == 0){
 //                System.out.println(123);
 //                continue;  
@@ -143,17 +154,26 @@ public class VibrantTestTread {
             curRow.createCell(colCt++).setCellValue(testCode);
             curRow.createCell(colCt++).setCellValue(arr[0]);
             curRow.createCell(colCt++).setCellValue(arr[1]);
+            int lowPCol = colCt++;
+            int HighPCol = colCt++;
+            
             Map<String, Double> map = pillarUnitMap.get(testCode);
-
+            int lowCt = 0 , highCt = 0;
             for (String newJun : list) {
                 if (map.containsKey(newJun)) {
                     rowTitle.createCell(colCt).setCellValue(newJun);
                     Cell curCell = curRow.createCell(colCt++);
                     curCell.setCellValue(map.get(newJun));
-                    if (testCode.contains("WBC") && map.get(newJun) > arr[1] && arr[1] != 0) {
+                    if (map.get(newJun) > arr[1] && arr[1] != 0) {
                         curCell.setCellStyle(cs);
+                        ++ highCt;
                     }
-
+                    if (map.get(newJun) < arr[0] && arr[0] != 0) {
+                        if(map.get(newJun) > 0){
+                            curCell.setCellStyle(csBlue);
+                            ++ lowCt;
+                        }
+                    }
                     if (newOldMap.containsKey(newJun)) {
 
                         String oldJun = newOldMap.get(newJun);
@@ -161,9 +181,7 @@ public class VibrantTestTread {
                         if (unitMap.get(testCode).containsKey(oldJun)) {
                             Cell cell = rowTitle.createCell(colCt);
                             cell.setCellValue("Dup-" + oldJun);
-                            if (dateDif(newJun, oldJun) < 90) {
-                                cell.setCellStyle(cs);
-                            }
+                            cell.setCellStyle(cs);
                             curRow.createCell(colCt++).setCellValue(unitMap.get(testCode).get(oldJun));
                         }
                     }
@@ -171,6 +189,10 @@ public class VibrantTestTread {
                 }
 
             }
+            curRow.createCell(lowPCol).setCellValue(df.format((double)lowCt * 100 /list.size()) + "%");
+            curRow.createCell(HighPCol).setCellValue(df.format((double)highCt * 100 /list.size()) + "%");
+            
+            
         }
         
         
@@ -178,6 +200,9 @@ public class VibrantTestTread {
         rowCt = 0;
         colCt = 0;
         rowTitle = sheetT.createRow(rowCt++);
+        
+        
+        
         for(String testCode : treadMap.keySet()){   
             for(String range : treadMap.get(testCode).keySet()){
                 Row curRow = sheetT.createRow(rowCt++);
@@ -191,7 +216,7 @@ public class VibrantTestTread {
                     curRow.createCell(colCt++).setCellValue(unit.count);
                     rowTitle.createCell(colCt).setCellValue("week" + week);
                     Cell cell = curRow.createCell(colCt++);
-                    cell.setCellValue(unit.percent);
+                    cell.setCellValue(df.format(unit.percent * 100 )+ "%");
                     cell.setCellStyle(cs);
                 }
             

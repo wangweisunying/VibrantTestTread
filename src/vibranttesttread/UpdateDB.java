@@ -22,14 +22,14 @@ public class UpdateDB {
     public static void main(String[] args) throws IOException, SQLException{
         UpdateDB test = new UpdateDB();
         //                  modify pillar_id ,                modify fileName
-        test.run("MNWW201901291_WBCWSV3_pillar_20190201201654" , "");
+        test.run("MNWW201901291_WBCWSV3_pillar_20190201201654" , "MNWW201901291_WBCWSV3_pillar_20190201201654_1549390666642");
     }
     private void run(String pillarId , String fileName) throws IOException, SQLException{
         Workbook wb = ExcelOperation.getReadConnection("C:\\Users\\Wei Wang\\Desktop\\TestTread\\"+ fileName +".xlsx", ExcelOperation.ExcelType.XLSX);
         Sheet sheet = wb.getSheetAt(0);
         Row rowTitle = sheet.getRow(0);
         DataBaseCon db = new V7DataBaseCon();
-        int colCt = 3;
+        int colCt = 5;
         int rowCt = 1;
         while(sheet.getRow(rowCt) != null){
             Row curRow = sheet.getRow(rowCt++);
@@ -44,7 +44,7 @@ public class UpdateDB {
                 
             
             }
-            colCt = 3;
+            colCt = 5;
         }
         db.close();
     }
