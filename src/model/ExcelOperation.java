@@ -30,7 +30,10 @@ public class ExcelOperation {
         XLS,
         XLSX
     }
-
+//    public static void main(String[] args) throws Exception{
+//        System.out.println(ExcelOperation.transferIntgerToString(84));
+//  
+//    }
     public static Workbook getReadConnection(String path, ExcelType type) throws IOException {
         FileInputStream fileIn = new FileInputStream(path);
         Workbook wb;

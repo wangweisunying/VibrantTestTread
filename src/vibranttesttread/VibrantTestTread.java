@@ -28,6 +28,7 @@ import org.apache.poi.ss.usermodel.IndexedColors;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
+import panel.HeavyMetals_Panel;
 import panel.Micronutrients_V3_Panel;
 import panel.Panel;
 
@@ -40,7 +41,7 @@ public class VibrantTestTread {
     /**
      * @param args the command line arguments
      */
-    private final String pillarId = "MNWM201901291_WBCMETALV3_pillar_20190202160423";
+    private final String pillarId = "HMU201902211_HMU_pillar_20190223162518";
     private final String path = "C:\\Users\\Wei Wang\\Desktop\\TestTread\\";
 
     // //Map<testcode ,Map< julienBarcode , unit>>
@@ -54,12 +55,13 @@ public class VibrantTestTread {
     private List<String> list;
 
     public static void main(String[] args) throws SQLException, IOException, Exception {
-        VibrantTestTread test = new VibrantTestTread(new Micronutrients_V3_Panel());
+//        VibrantTestTread test = new VibrantTestTread(new Micronutrients_V3_Panel());
+        VibrantTestTread test = new VibrantTestTread(new HeavyMetals_Panel());
         test.run();
 //        test.ExportExcel(test.path);
 //    System.out.println(in3Month("1901230034" ,"1901150003"));
     }
-    public void run() throws IOException{
+    public void run() throws IOException, Exception{
         getDupUnit(list);
         ExportExcel(path , getTreadMap(unitMap, refMap, 20, 7));
     }
@@ -103,7 +105,7 @@ public class VibrantTestTread {
         }
     }
 
-    private List<String> getJulienBarcode(String pillarId) throws SQLException {
+    private List<String> getJulienBarcode(String pillarId) throws SQLException, Exception {
         DataBaseCon dbV7 = new V7DataBaseCon();
         String sql = "select julien_barcode from vibrant_test_tracking.well_info where well_plate_id = (select well_plate_id from vibrant_test_tracking.pillar_plate_info where pillar_plate_id = '" + pillarId + "');";
         List<String> list = new ArrayList();
@@ -111,11 +113,12 @@ public class VibrantTestTread {
         while (rs.next()) {
             list.add(rs.getString(1));
         }
+        if(list.isEmpty()) throw new Exception("can not find any julien barcode under this piilar id!!!!");
         dbV7.close();
         return list;
     }
 
-    private void ExportExcel(String path , Map<String, Map<String, Map<Integer, TreadUnit>>> treadMap) throws IOException {
+    private void ExportExcel(String path , Map<String, Map<String, Map<Integer, TreadUnit>>> treadMap) throws IOException, Exception {
 
         Workbook wb = ExcelOperation.getWriteConnection(ExcelOperation.ExcelType.XLSX);
         Sheet sheet = wb.createSheet("Unit");
@@ -125,6 +128,10 @@ public class VibrantTestTread {
         CellStyle cs = wb.createCellStyle();
         cs.setFillPattern(FillPatternType.SOLID_FOREGROUND);
         cs.setFillForegroundColor(IndexedColors.RED.getIndex());
+        
+        
+        CellStyle csPercentage = wb.createCellStyle();
+        csPercentage.setDataFormat(wb.createDataFormat().getFormat("0.00%"));
         
         CellStyle csBlue = wb.createCellStyle();
         csBlue.setFillPattern(FillPatternType.SOLID_FOREGROUND);
@@ -158,7 +165,7 @@ public class VibrantTestTread {
             int HighPCol = colCt++;
             
             Map<String, Double> map = pillarUnitMap.get(testCode);
-            int lowCt = 0 , highCt = 0;
+//            int lowCt = 0 , highCt = 0;
             for (String newJun : list) {
                 if (map.containsKey(newJun)) {
                     rowTitle.createCell(colCt).setCellValue(newJun);
@@ -166,33 +173,54 @@ public class VibrantTestTread {
                     curCell.setCellValue(map.get(newJun));
                     if (map.get(newJun) > arr[1] && arr[1] != 0) {
                         curCell.setCellStyle(cs);
-                        ++ highCt;
+//                        ++ highCt;
                     }
                     if (map.get(newJun) < arr[0] && arr[0] != 0) {
-                        if(map.get(newJun) > 0){
+                        if(map.get(newJun) >= 0 || map.get(newJun) == -999999){
                             curCell.setCellStyle(csBlue);
-                            ++ lowCt;
+//                            ++ lowCt;
                         }
                     }
                     if (newOldMap.containsKey(newJun)) {
 
                         String oldJun = newOldMap.get(newJun);
-                        System.out.println(newJun + oldJun);
+//                        System.out.println(newJun + oldJun);
                         if (unitMap.get(testCode).containsKey(oldJun)) {
                             Cell cell = rowTitle.createCell(colCt);
                             cell.setCellValue("Dup-" + oldJun);
                             cell.setCellStyle(cs);
-                            curRow.createCell(colCt++).setCellValue(unitMap.get(testCode).get(oldJun));
+                            Cell curDupCell = curRow.createCell(colCt++);
+                            double dupUnit = unitMap.get(testCode).get(oldJun);
+                            curDupCell.setCellValue(dupUnit);
+                            if (dupUnit > arr[1] && arr[1] != 0) {
+                                curDupCell.setCellStyle(cs);
+                            }
+                            if (dupUnit < arr[0] && arr[0] != 0) {
+                                if(dupUnit >= 0 || dupUnit == -999999){
+                                    curDupCell.setCellStyle(csBlue);
+                                }
+                            }
+                            
+                            
                         }
                     }
 
                 }
 
             }
-            curRow.createCell(lowPCol).setCellValue(df.format((double)lowCt * 100 /list.size()) + "%");
-            curRow.createCell(HighPCol).setCellValue(df.format((double)highCt * 100 /list.size()) + "%");
             
+            Cell lowPCell = curRow.createCell(lowPCol);
+            Cell highPCell = curRow.createCell(HighPCol);
             
+            String range = "F" + rowCt + ":" + ExcelOperation.transferIntgerToString(colCt) + rowCt;
+            String f1 = "COUNTIFS("+ range +",\"<\"&B"+ rowCt +","+ range +",\">=0\""+ ")/COUNT("+ range +")";
+            String f2 = "COUNTIF("+ range +",\">\"&C"+ rowCt +")/COUNT("+ range +")";
+            lowPCell.setCellFormula(f1);
+            highPCell.setCellFormula(f2);
+            lowPCell.setCellStyle(csPercentage);
+            highPCell.setCellStyle(csPercentage);
+//            curRow.createCell(lowPCol).setCellValue(df.format((double)lowCt * 100 /list.size()) + "%");
+//            curRow.createCell(HighPCol).setCellValue(df.format((double)highCt * 100 /list.size()) + "%");
         }
         
         
