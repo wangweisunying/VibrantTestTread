@@ -41,7 +41,7 @@ public class VibrantTestTread {
     /**
      * @param args the command line arguments
      */
-    private final String pillarId = "HMU201902211_HMU_pillar_20190223162518";
+    private final String pillarId = "HMU201903015_HMU_pillar_20190301214252";
     private final String path = "C:\\Users\\Wei Wang\\Desktop\\TestTread\\";
 
     // //Map<testcode ,Map< julienBarcode , unit>>
